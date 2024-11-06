@@ -1,5 +1,5 @@
 mod modules;
-use modules::{ClaudeApiResponse, ClaudeApiRequest, ClaudeMessage, ClaudeApiError};
+use modules::{parse_sse_line, ClaudeApiError, ClaudeApiRequest, ClaudeApiResponse, ClaudeMessage, ClaudeStreamApiRequest, StreamEvent};
 
 use clap::{Parser, Subcommand};
 use dirs;
@@ -74,18 +74,19 @@ impl Config {
     }
 }
 
-async fn send_message(api_key: &str, content: &str) -> Result<String, Box<dyn std::error::Error>> {
+async fn send_message(api_key: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let request = ClaudeApiRequest {
+    let request = ClaudeStreamApiRequest {
         model: "claude-3-5-sonnet-20241022".to_string(),
         max_tokens: 1024,
         messages: vec![ClaudeMessage {
             role: "user".to_string(),
             content: content.to_string(),
         }],
+        stream: true,
     };
 
-    let response = client
+    let mut response = client
         .post("https://api.anthropic.com/v1/messages")
         .header("x-api-key", api_key)
         .header("anthropic-version", "2023-06-01")
@@ -94,17 +95,31 @@ async fn send_message(api_key: &str, content: &str) -> Result<String, Box<dyn st
         .send()
         .await?;
 
-    let response_text = response.text().await?;
+    print!("🤖 "); // Claude emoji prompt
+    io::stdout().flush()?;
 
-    // Try to parse as successful response first
-    if let Ok(response) = serde_json::from_str::<ClaudeApiResponse>(&response_text) {
-        Ok(response.content[0].text.clone())
-    } else if let Ok(error) = serde_json::from_str::<ClaudeApiError>(&response_text) {
-        Err(error.error.message.into())
-    } else {
-        eprintln!("Unrecognized response format: {}", response_text);
-        Err("Unknown error format. Response printed to terminal.".into())
+    let mut stdout = io::stdout();
+    
+    while let Some(chunk) = response.chunk().await? {
+        let chunk_str = String::from_utf8_lossy(&chunk);
+        for line in chunk_str.lines() {
+            if let Some(event) = parse_sse_line(line) {
+                match event {
+                    StreamEvent::ContentBlockDelta { delta, .. } => {
+                        stdout.write_all(delta.text.as_bytes())?;
+                        stdout.flush()?;
+                    },
+                    StreamEvent::MessageStop => {
+                        println!(); // New line after message is complete
+                        return Ok(());
+                    },
+                    _ => {} // Ignore other events
+                }
+            }
+        }
     }
+    
+    Ok(())
 }
 
 #[tokio::main]
@@ -158,9 +173,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "" => continue,
             _ => {
                 match send_message(config.api_key.as_ref().unwrap(), input).await {
-                    Ok(response) => {
-                        println!("🤖 {}", response); // Claude emoji prompt
-                    }
+                    Ok(()) => {},
                     Err(e) => {
                         println!("Error: {}", e);
                     }
