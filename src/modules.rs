@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
@@ -60,26 +62,23 @@ pub enum StreamEvent {
     #[serde(rename = "message_start")]
     MessageStart { message: MessageStart },
     #[serde(rename = "content_block_start")]
-    ContentBlockStart { 
+    ContentBlockStart {
         index: usize,
-        content_block: ContentBlock 
+        content_block: ContentBlock,
     },
     #[serde(rename = "content_block_delta")]
-    ContentBlockDelta { 
-        index: usize,
-        delta: Delta 
-    },
+    ContentBlockDelta { index: usize, delta: Delta },
     #[serde(rename = "content_block_stop")]
     ContentBlockStop { index: usize },
     #[serde(rename = "message_delta")]
-    MessageDelta { 
+    MessageDelta {
         delta: MessageDeltaContent,
-        usage: ClaudeUsage 
+        usage: ClaudeUsage,
     },
     #[serde(rename = "message_stop")]
     MessageStop,
     #[serde(rename = "ping")]
-    Ping
+    Ping,
 }
 
 #[derive(Deserialize, Debug)]
@@ -92,7 +91,7 @@ pub struct MessageStart {
     pub model: String,
     pub stop_reason: Option<String>,
     pub stop_sequence: Option<String>,
-    pub usage: ClaudeUsage
+    pub usage: ClaudeUsage,
 }
 
 #[derive(Deserialize, Debug)]

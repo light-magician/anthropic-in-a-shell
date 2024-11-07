@@ -1,5 +1,7 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
 mod modules;
-use modules::{parse_sse_line, ClaudeApiError, ClaudeApiRequest, ClaudeApiResponse, ClaudeMessage, ClaudeStreamApiRequest, StreamEvent};
+use modules::{parse_sse_line, ClaudeMessage, ClaudeStreamApiRequest, StreamEvent};
 
 use clap::{Parser, Subcommand};
 use dirs;
@@ -34,8 +36,9 @@ struct Config {
 
 impl Config {
     fn new() -> io::Result<Self> {
-        let config_dir = dirs::config_dir()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Could not find config directory"))?;
+        let config_dir = dirs::config_dir().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::NotFound, "Could not find config directory")
+        })?;
         let config_path = config_dir.join("claude-cli/config.json");
 
         if let Ok(config_str) = fs::read_to_string(&config_path) {
@@ -101,7 +104,7 @@ async fn send_message(api_key: &str, content: &str) -> Result<(), Box<dyn std::e
     io::stdout().flush()?;
 
     let mut stdout = io::stdout();
-    
+
     while let Some(chunk) = response.chunk().await? {
         let chunk_str = String::from_utf8_lossy(&chunk);
         for line in chunk_str.lines() {
@@ -110,17 +113,17 @@ async fn send_message(api_key: &str, content: &str) -> Result<(), Box<dyn std::e
                     StreamEvent::ContentBlockDelta { delta, .. } => {
                         stdout.write_all(delta.text.as_bytes())?;
                         stdout.flush()?;
-                    },
+                    }
                     StreamEvent::MessageStop => {
                         println!(); // New line after message is complete
                         return Ok(());
-                    },
+                    }
                     _ => {} // Ignore other events
                 }
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -173,14 +176,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 continue;
             }
             "" => continue,
-            _ => {
-                match send_message(config.api_key.as_ref().unwrap(), input).await {
-                    Ok(()) => {},
-                    Err(e) => {
-                        println!("Error: {}", e);
-                    }
+            _ => match send_message(config.api_key.as_ref().unwrap(), input).await {
+                Ok(()) => {}
+                Err(e) => {
+                    println!("Error: {}", e);
                 }
-            }
+            },
         }
     }
 
