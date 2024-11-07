@@ -76,6 +76,7 @@ impl Config {
 
 async fn send_message(api_key: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
+    // visit here to verify which model was called https://console.anthropic.com/settings/logs
     // sonnet is claude-3-5-sonnet-20241022
     let request = ClaudeStreamApiRequest {
         model: "claude-3-5-haiku-20241022".to_string(),
