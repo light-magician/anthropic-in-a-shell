@@ -76,8 +76,9 @@ impl Config {
 
 async fn send_message(api_key: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
+    // sonnet is claude-3-5-sonnet-20241022
     let request = ClaudeStreamApiRequest {
-        model: "claude-3-5-sonnet-20241022".to_string(),
+        model: "claude-3-5-haiku-20241022".to_string(),
         max_tokens: 1024,
         messages: vec![ClaudeMessage {
             role: "user".to_string(),

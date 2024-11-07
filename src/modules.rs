@@ -14,15 +14,15 @@ pub struct ClaudeApiRequest {
 
 #[derive(Deserialize, Debug)]
 pub struct ClaudeContentItem {
-    pub text: String,
+    text: String,
     #[serde(rename = "type")]
-    pub content_type: String,
+    content_type: String,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct ClaudeUsage {
-    pub input_tokens: u32,
-    pub output_tokens: u32,
+    pub input_tokens: Option<u32>,
+    pub output_tokens: Option<u32>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -124,7 +124,7 @@ pub struct ClaudeStreamApiRequest {
     pub stream: bool,
 }
 
-// Add this function to parse SSE events
+// Add thfunction to parse SSE events
 pub fn parse_sse_line(line: &str) -> Option<StreamEvent> {
     if line.starts_with("data: ") {
         let json = &line["data: ".len()..];

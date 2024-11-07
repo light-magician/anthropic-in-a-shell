@@ -1,7 +1,43 @@
 # anthropic-in-a-shell
 An aesthetic way to use Anthropic claude api via the command line.
 
-## API Key Setup
+# install and run
+To create and run a release version of the CLI, you can use Cargo's release build and install commands. Here are the steps:
+
+1. Build a release version (optimized, without debug info):
+```bash
+cargo build --release
+```
+This creates an optimized binary in `target/release/`
+
+2. Install it to your system (usually to ~/.cargo/bin which should be in your PATH):
+```bash
+cargo install --path .
+```
+
+After installation, you can run it from anywhere by typing:
+```bash
+claude-cli
+```
+
+Alternative ways:
+
+1. Run the release version directly without installing:
+```bash
+./target/release/claude-cli
+```
+
+2. Run release version directly through cargo:
+```bash
+cargo run --release
+```
+
+The release version will be significantly faster than the debug version (created by `cargo build` or `cargo run` without `--release`).
+
+Remember you'll need to set your API key first:
+```bash
+claude-cli setkey your-api-key-here
+```
 
 ### Getting Your API Key
 1. You'll need a Claude API key from Anthropic to use this CLI tool
