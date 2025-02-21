@@ -1,10 +1,9 @@
-
 #!/bin/bash
 
 set -e  # Exit on error
 
-# Detect the project directory
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Detect the project directory (assumes this script is in the root)
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/llm-interaction" && pwd)"
 
 # Define the binary name
 BINARY_NAME="agent"
