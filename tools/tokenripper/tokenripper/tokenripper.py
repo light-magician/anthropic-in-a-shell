@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -44,10 +45,45 @@ def fetch_and_clean(input_path):
     print(f"✅ Cleaned text saved as {filename}")
 
 
+def display_help():
+    """Display help information."""
+    print(
+        """
+╭─────────────────────────────────────────────╮
+│                TOKENRIPPER                   │
+╰─────────────────────────────────────────────╯
+
+A simple command-line tool to extract clean text from HTML documents.
+
+USAGE:
+  tokenripper <URL|HTML_FILE>    Extract text from a URL or local HTML file
+  tokenripper help               Display this help message
+
+FUNCTIONALITY:
+  - Extracts readable text from HTML documents
+  - Removes scripts, styles, and metadata
+  - Normalizes whitespace and formatting
+  - Saves clean text to a file in the current directory
+
+EXAMPLES:
+  tokenripper https://example.com             # Process a website
+  tokenripper ./local_document.html           # Process a local file
+
+VERSION: 0.1.0
+    """
+    )
+
+
 def main():
     if len(sys.argv) != 2:
-        print("Usage: tokenripper <URL|HTML_FILE>")
+        print(
+            "Usage: tokenripper <URL|HTML_FILE> or 'tokenripper help' for more information"
+        )
         sys.exit(1)
+
+    if sys.argv[1].lower() in ["help", "--help", "-h"]:
+        display_help()
+        return
 
     fetch_and_clean(sys.argv[1])
 
