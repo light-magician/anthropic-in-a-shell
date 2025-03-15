@@ -1,12 +1,12 @@
 import os
 import sys
-import antrhopoc
-import dotenv
+from anthropic import Anthropic
+from dotenv import load_dotenv
 
 
 def main():
     # Load environment variables from .env file
-    dotenv.load_dotenv()
+    load_dotenv()
 
     # Initialize the Anthropic client
     client = Anthropic()
