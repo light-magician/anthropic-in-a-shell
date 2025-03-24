@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  # PostgreSQL with pgvector extension
+  postgres:
+    image: ankane/pgvector:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=chessrag
+      - POSTGRES_PASSWORD=chessrag
+      - POSTGRES_DB=chessrag
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - chess_rag_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chessrag"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=chessrag
+      - DB_PASSWORD=chessrag
+      - DB_NAME=chessrag
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chess_rag_network
+
+  # Frontend (optional)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - API_URL=http://api:5000
+    depends_on:
+      - api
+    networks:
+      - chess_rag_network
+
+networks:
+  chess_rag_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
